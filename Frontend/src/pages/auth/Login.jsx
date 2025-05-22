@@ -1,12 +1,8 @@
 import React from 'react'
 
-import '../../'
-
 function Login() {
   return (
-    <div>
-
-    </div>
+    <div>Login</div>
   )
 }
 
