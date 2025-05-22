@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.36105.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService.Api", "src\Services\UserService.Api\UserService.Api.csproj", "{4AFA6258-4742-780B-59E9-322F5508E6D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoleService.Api", "src\Services\RoleService.Api\RoleService.Api.csproj", "{D8465613-7358-D67E-803B-0E11B29D4BFC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4AFA6258-4742-780B-59E9-322F5508E6D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AFA6258-4742-780B-59E9-322F5508E6D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AFA6258-4742-780B-59E9-322F5508E6D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AFA6258-4742-780B-59E9-322F5508E6D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8465613-7358-D67E-803B-0E11B29D4BFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8465613-7358-D67E-803B-0E11B29D4BFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8465613-7358-D67E-803B-0E11B29D4BFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8465613-7358-D67E-803B-0E11B29D4BFC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {21A8A8B5-ED6B-48B0-AA0E-299DB83CCF27}
+	EndGlobalSection
+EndGlobal

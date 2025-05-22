@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "fobJ21aRRCp9ZBMMBF2UMZ0Kb4rwbyJPH6+rKb3ID3o=",
+  "Source": "RoleService.Api",
+  "BasePath": "_content/RoleService.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
