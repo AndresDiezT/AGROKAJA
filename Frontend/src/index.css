@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+:root {
+  /* Paleta de colores */
+  --color-primary: #65C56F;
+  --color-primary-dark: #4fa65c;
+  --color-secondary: #F0FFF3;
+  --color-accent: #FFC107;
+  --color-text: #333333;
+  --color-text-light: #ffffff;
+  --color-border: #e0e0e0;
+
+  /* Tipografía */
+  --font-family-base: 'Segoe UI', 'Roboto', sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-weight-bold: 700;
+  --font-weight-normal: 400;
+
+  /* Espaciado */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Bordes */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 16px;
+
+  /* Anchos */
+  --max-width-container: 1200px;
+
+  /* Sombras */
+  --box-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --box-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+@layer base {
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text);
+    background-color: var(--color-secondary);
+    margin: 0;
+    padding: 0;
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    background-color: var(--color-accent);
+    color: var(--color-text-light);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-bold);
+    box-shadow: var(--box-shadow-sm);
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+  }
+
+  .card {
+    background-color: var(--color-text-light);
+    color: var(--color-text);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-md);
+    border: 1px solid var(--color-border);
+  }
+
+  .container {
+    max-width: var(--max-width-container);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+  }
+}
+
+@layer utilities {
+  /* Colores */
+  .text-primary {
+    color: var(--color-primary);
+  }
+  .text-secondary {
+    color: var(--color-secondary);
+  }
+  .text-accent {
+    color: var(--color-accent);
+  }
+  .text-light {
+    color: var(--color-text-light);
+  }
+  .text-dark {
+    color: var(--color-text);
+  }
+
+  .bg-primary {
+    background-color: var(--color-primary);
+  }
+  .bg-secondary {
+    background-color: var(--color-secondary);
+  }
+  .bg-accent {
+    background-color: var(--color-accent);
+  }
+
+  .border-default {
+    border-color: var(--color-border);
+  }
+
+  /* Tipografía */
+  .font-base {
+    font-family: var(--font-family-base);
+  }
+
+  .text-sm {
+    font-size: var(--font-size-sm);
+  }
+  .text-md {
+    font-size: var(--font-size-md);
+  }
+  .text-lg {
+    font-size: var(--font-size-lg);
+  }
+  .text-xl {
+    font-size: var(--font-size-xl);
+  }
+
+  .font-bold {
+    font-weight: var(--font-weight-bold);
+  }
+
+  .font-normal {
+    font-weight: var(--font-weight-normal);
+  }
+
+  /* Espaciado */
+  .p-xs {
+    padding: var(--spacing-xs);
+  }
+  .p-sm {
+    padding: var(--spacing-sm);
+  }
+  .p-md {
+    padding: var(--spacing-md);
+  }
+  .p-lg {
+    padding: var(--spacing-lg);
+  }
+  .p-xl {
+    padding: var(--spacing-xl);
+  }
+
+  .m-xs {
+    margin: var(--spacing-xs);
+  }
+  .m-sm {
+    margin: var(--spacing-sm);
+  }
+  .m-md {
+    margin: var(--spacing-md);
+  }
+  .m-lg {
+    margin: var(--spacing-lg);
+  }
+  .m-xl {
+    margin: var(--spacing-xl);
+  }
+
+  /* Bordes */
+  .rounded-sm {
+    border-radius: var(--border-radius-sm);
+  }
+  .rounded-md {
+    border-radius: var(--border-radius-md);
+  }
+  .rounded-lg {
+    border-radius: var(--border-radius-lg);
+  }
+
+  /* Sombras */
+  .shadow-sm {
+    box-shadow: var(--box-shadow-sm);
+  }
+  .shadow-md {
+    box-shadow: var(--box-shadow-md);
+  }
+
+  /* Ancho máximo del contenedor */
+  .max-w-container {
+    max-width: var(--max-width-container);
+  }
+  .max-w-container-table {
+    max-width: 900px;
+  }
+}
