@@ -37,8 +37,9 @@ namespace Backend.DTOs.UserDTOs
         public DateOnly BirthDate { get; set; }
 
         // RELATIONS
-        public int RoleId { get; set; }
-
+        [Required(ErrorMessage = "El rol es obligatorio")]
+        public int IdRole { get; set; }
+        [Required(ErrorMessage = "El tipo de documento es obligatorio")]
         public int IdTypeDocument { get; set; }
     }
 }

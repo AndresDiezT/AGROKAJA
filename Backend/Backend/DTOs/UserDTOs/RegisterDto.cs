@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Backend.DTOs.UserDTOs
 {
-    public class CreateUserDto
+    public class RegisterDto
     {
         [Key]
         [Required(ErrorMessage = "El documento es obligatorio")]
@@ -21,7 +21,7 @@ namespace Backend.DTOs.UserDTOs
 
         [Required(ErrorMessage = "La contraseña es obligatorio")]
         [StringLength(255, MinimumLength = 6, ErrorMessage = "Este campo debe tener entre 6 y 50 caracteres")]
-        public string PasswordHash { get; set; }
+        public string Password { get; set; }
 
         [Required(ErrorMessage = "El nombre es obligatorio")]
         [StringLength(255, MinimumLength = 3, ErrorMessage = "Este campo debe tener entre 3 y 100 caracteres")]
@@ -40,8 +40,9 @@ namespace Backend.DTOs.UserDTOs
         public DateOnly BirthDate { get; set; }
 
         // RELATIONS
-        public int RoleId { get; set; }
-
+        [Required(ErrorMessage = "El rol es obligatorio")]
+        public int IdRole { get; set; }
+        [Required(ErrorMessage = "El tipo de documento es obligatorio")]
         public int IdTypeDocument { get; set; }
     }
 }

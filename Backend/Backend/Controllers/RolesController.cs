@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Backend.Models;
 using Backend.Interfaces;
 using Backend.DTOs.RoleDTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Backend.Controllers
 {
@@ -18,6 +19,7 @@ namespace Backend.Controllers
         }
 
         // GET: api/Roles
+        [Authorize(Roles = "1")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Role>>> GetAllRoles()
         {
@@ -33,6 +35,16 @@ namespace Backend.Controllers
             return role != null ? Ok(role) : NotFound();
         }
 
+        // POST: api/Roles
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<Role>> CreateRole(CreateRoleDto createRoleDto)
+        {
+            var role = await _roleService.CreateRoleAsync(createRoleDto);
+
+            return CreatedAtAction(nameof(GetRoleById), new { id = role.IdRole }, role);
+        }
+
         // PUT: api/Roles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -45,16 +57,6 @@ namespace Backend.Controllers
             if (updateRole == null) return NotFound();
 
             return NoContent();
-        }
-
-        // POST: api/Roles
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Role>> CreateRole(CreateRoleDto createRoleDto)
-        {
-            var role = await _roleService.CreateRoleAsync(createRoleDto);
-
-            return CreatedAtAction(nameof(GetRoleById), new { id = role.IdRole }, role);
         }
 
         // PUT: api/Roles/5/deactivate
