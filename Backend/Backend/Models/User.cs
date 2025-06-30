@@ -48,12 +48,12 @@ namespace Backend.Models
         public DateTime? DeactivatedAt { get; set; }
 
         // RELATIONS
-        public int RoleId { get; set; }
-
+        public int IdRole { get; set; }
+        [ForeignKey("IdRole")]
         public Role Role { get; set; }
 
         public int IdTypeDocument { get; set; }
-
+        [ForeignKey("IdTypeDocument")]
         public TypeDocument TypeDocument { get; set; }
     }
 }
