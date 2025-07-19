@@ -1,7 +1,6 @@
 ﻿using Backend.Data;
-using Backend.DTOs.RoleDTOs;
+using Backend.DTOs;
 using Backend.DTOs.TypeDocumentDto;
-using Backend.DTOs.UserDTOs;
 using Backend.Interfaces;
 using Backend.Models;
 using Microsoft.EntityFrameworkCore;
@@ -17,22 +16,28 @@ namespace Backend.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<TypeDocument>> GetAllTypesDocumentAsync()
+        public async Task<Result<IEnumerable<TypeDocument>>> GetAllTypesDocumentAsync()
         {
-            return await _context.TypesDocument
-                .Include(u => u.Users)
-                .ToListAsync();
+            var typesDocument = await _context.TypesDocument.ToListAsync();
+
+            return Result<IEnumerable<TypeDocument>>.Ok(typesDocument);
         }
 
-        public async Task<TypeDocument?> GetTypeDocumentByIdAsync(int id)
+        public async Task<Result<TypeDocument>> GetTypeDocumentByIdAsync(int id)
         {
-            return await _context.TypesDocument
-                .Include(u => u.Users)
-                .FirstOrDefaultAsync(u => u.IdTypeDocument == id);
+            var typeDocument = await _context.TypesDocument.FindAsync(id);
+
+            if (typeDocument is null)
+                return Result<TypeDocument>.Fail("Tipo de documento no encontrado");
+
+            return Result<TypeDocument>.Ok(typeDocument);
         }
 
-        public async Task<TypeDocument> CreateTypeDocumentAsync(CreateTypeDocumentDto createTypeDocumentDto)
+        public async Task<Result<TypeDocument>> CreateTypeDocumentAsync(CreateTypeDocumentDto createTypeDocumentDto)
         {
+            if (await _context.TypesDocument.AnyAsync(u => u.NameTypeDocument == createTypeDocumentDto.NameTypeDocument))
+                return Result<TypeDocument>.Fail("El tipo de documento ya existe");
+
             var newTypeDocument = new TypeDocument
             {
                 NameTypeDocument = createTypeDocumentDto.NameTypeDocument,
@@ -44,28 +49,33 @@ namespace Backend.Services
 
             await _context.SaveChangesAsync();
 
-            return newTypeDocument;
+            return Result<TypeDocument>.Ok(newTypeDocument);
         }
 
-        public async Task<TypeDocument?> UpdateTypeDocumentAsync(UpdateTypeDocumentDto updateTypeDocumentDto)
+        public async Task<Result<TypeDocument>> UpdateTypeDocumentAsync(UpdateTypeDocumentDto updateTypeDocumentDto)
         {
             var existingTypeDocument = await _context.TypesDocument.FindAsync(updateTypeDocumentDto.IdTypeDocument);
 
-            if (existingTypeDocument == null) return null;
+            if (existingTypeDocument == null)
+                Result<TypeDocument>.Fail("Tipo de documento no encontrado");
 
             existingTypeDocument.NameTypeDocument = updateTypeDocumentDto.NameTypeDocument;
             existingTypeDocument.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
-            return existingTypeDocument;
+            return Result<TypeDocument>.Ok(existingTypeDocument);
         }
 
-        public async Task<bool> DeactivateTypeDocumentAsync(int id)
+        public async Task<Result<bool>> DeactivateTypeDocumentAsync(int id)
         {
             var typeDocument = await _context.TypesDocument.FindAsync(id);
 
-            if (typeDocument == null) return false;
+            if (typeDocument is null)
+                return Result<bool>.Fail("Tipo de documento no encontrado");
+
+            if (!typeDocument.IsActive)
+                return Result<bool>.Fail("El tipo de documento ya esta inactivo");
 
             typeDocument.IsActive = false;
             typeDocument.UpdatedAt = DateTime.Now;
@@ -73,14 +83,18 @@ namespace Backend.Services
 
             await _context.SaveChangesAsync();
 
-            return true;
+            return Result<bool>.Ok(true);
         }
 
-        public async Task<bool> ActivateTypeDocumentAsync(int id)
+        public async Task<Result<bool>> ActivateTypeDocumentAsync(int id)
         {
             var typeDocument = await _context.TypesDocument.FindAsync(id);
 
-            if (typeDocument == null) return false;
+            if (typeDocument is null)
+                return Result<bool>.Fail("Tipo de documento no encontrado");
+
+            if (typeDocument.IsActive)
+                return Result<bool>.Fail("El tipo de documento ya esta activo");
 
             typeDocument.IsActive = true;
             typeDocument.UpdatedAt = DateTime.Now;
@@ -88,7 +102,7 @@ namespace Backend.Services
 
             await _context.SaveChangesAsync();
 
-            return true;
+            return Result<bool>.Ok(true);
         }
     }
 }

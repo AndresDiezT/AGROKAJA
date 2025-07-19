@@ -11,6 +11,7 @@ using Backend.Interfaces;
 using Backend.Services;
 using Backend.DTOs.UserDTOs;
 using Backend.DTOs.RoleDTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Backend.Controllers
 {
@@ -33,7 +34,7 @@ namespace Backend.Controllers
         }
 
         // GET: api/Users/5
-        [HttpGet("{id}")]
+        [HttpGet("{document}")]
         public async Task<ActionResult<User>> GetUserByDocument(string document)
         {
             var user = await _userService.GetUserByDocumentAsync(document);
@@ -41,6 +42,23 @@ namespace Backend.Controllers
             if (user == null) return NotFound();
 
             return Ok(user);
+        }
+
+        // GET: api/Users/profile
+        [HttpGet("profile")]
+        public async Task<ActionResult<ReadUserDto>> GetUserByProfile()
+        {
+            var result = await _userService.GetProfileAsync();
+
+            if (!result.Success)
+            {
+                if (result.Error == "Usuario no encontrado")
+                    return NotFound(new { error = result.Error });
+
+                return BadRequest(new { error = result.Error });
+            }
+
+            return Ok(result.Data);
         }
 
         // PUT: api/Users/5
@@ -57,16 +75,6 @@ namespace Backend.Controllers
             return NoContent();
         }
 
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<User>> CreateUser(CreateUserDto createUserDto)
-        {
-            var user = await _userService.CreateUserAsync(createUserDto);
-
-            return CreatedAtAction(nameof(GetUserByDocument), new { document = user.Document }, user);
-        }
-
         // PUT: api/Users/5/deactivate
         [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateUser(string document)
@@ -79,6 +87,15 @@ namespace Backend.Controllers
         public async Task<IActionResult> ActivateUser(string document)
         {
             return await _userService.ActivateUserAsync(document) ? NoContent() : BadRequest("El rol ya está activo o no existe");
+        }
+
+        // GET: api/Users/filter
+        // EJEMPLO: GET /api/user/filter?Username=juan&IsActive=true&Page=1&PageSize=5&SortBy=CreatedAt&SortDesc=true&SelectFields=Username&SelectFields=Email
+        [HttpGet("filter")]
+        public async Task<IActionResult> FilterUsers([FromQuery] UserFilterDto filterDto)
+        {
+            var result = await _userService.FilterUsersAsync(filterDto);
+            return Ok(result);
         }
     }
 }

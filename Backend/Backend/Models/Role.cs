@@ -22,6 +22,6 @@ namespace Backend.Models
         public DateTime? DeactivatedAt { get; set; }
 
         // RELATIONS
-        public ICollection<User> Users { get; set; } = new List<User>();
+        //public ICollection<User> Users { get; set; } = new List<User>();
     }
 }

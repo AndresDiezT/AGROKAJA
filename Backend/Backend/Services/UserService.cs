@@ -1,18 +1,23 @@
 ﻿using Backend.Data;
+using Backend.DTOs;
 using Backend.DTOs.UserDTOs;
 using Backend.Interfaces;
 using Backend.Models;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Backend.Services
 {
     public class UserService : IUserService
     {
         private readonly BackendDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(BackendDbContext context)
+        public UserService(BackendDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
@@ -22,8 +27,8 @@ namespace Backend.Services
                 .Include(u => u.TypeDocument)
                 .ToListAsync();
         }
-
-        public async Task<User?> GetUserByDocumentAsync(string document)
+        
+        public async Task<User> GetUserByDocumentAsync(string document)
         {
             return await _context.Users
                 .Include(u => u.Role)
@@ -31,32 +36,45 @@ namespace Backend.Services
                 .FirstOrDefaultAsync(u => u.Document == document);
         }
 
-        public async Task<User> CreateUserAsync(CreateUserDto createUserDto)
+        public async Task<Result<ReadUserDto>> GetProfileAsync()
         {
-            var newUser = new User
+            var httpContext = _httpContextAccessor.HttpContext;
+
+            var document = httpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? httpContext?.User?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (string.IsNullOrEmpty(document))
             {
-                Document = createUserDto.Document,
-                Username = createUserDto.Username,
-                Email = createUserDto.Email,
-                PasswordHash = createUserDto.Email, // NO OLVIDAR HASHEARRRRRRRRRR
-                FirstName = createUserDto.FirstName,
-                LastName = createUserDto.LastName,
-                PhoneNumber = createUserDto.PhoneNumber,
-                BirthDate = createUserDto.BirthDate,
-                CreatedAt = DateTime.Now,
-                IsActive = true,
-                RoleId = createUserDto.RoleId,
-                IdTypeDocument = createUserDto.IdTypeDocument
+                return Result<ReadUserDto>.Fail("No se pudo obtener el documento");
+            }
+
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .Include(u => u.TypeDocument)
+                .FirstOrDefaultAsync(u => u.Document == document);
+
+            if (user is null)
+            {
+                return Result<ReadUserDto>.Fail("Usuario no encontrado");
+            }
+
+            var dto = new ReadUserDto
+            {
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+                BirthDate = user.BirthDate,
+                RoleName = user.Role.NameRole,
+                TypeDocumentName = user.TypeDocument.NameTypeDocument
             };
 
-            _context.Users.Add(newUser);
-
-            await _context.SaveChangesAsync();
-
-            return newUser;
+            return Result<ReadUserDto>.Ok(dto);
         }
 
-        public async Task<User?> UpdateUserAsync(UpdateUserDto updateUserDto)
+
+        public async Task<User> UpdateUserAsync(UpdateUserDto updateUserDto)
         {
             var existingUser = await _context.Users.FindAsync(updateUserDto.Document);
 
@@ -66,15 +84,11 @@ namespace Backend.Services
 
             existingUser.Email = updateUserDto.Email;
 
-            //if (!string.IsNullOrEmpty(updateUserDto.Password))
-            //{
-            //    existingUser.PasswordHash = HashPassword(updateUserDto.Password);
-            //}
             existingUser.FirstName = updateUserDto.FirstName;
             existingUser.LastName = updateUserDto.LastName;
             existingUser.PhoneNumber = updateUserDto.PhoneNumber;
             existingUser.BirthDate = updateUserDto.BirthDate;
-            existingUser.RoleId = updateUserDto.RoleId;
+            existingUser.IdRole = updateUserDto.IdRole;
             existingUser.IdTypeDocument = updateUserDto.IdTypeDocument;
             existingUser.UpdatedAt = DateTime.Now;
 
@@ -113,9 +127,73 @@ namespace Backend.Services
             return true;
         }
 
-        private string HashPassword(string password)
+        
+        public async Task<object> FilterUsersAsync(UserFilterDto userFilterDto)
         {
-            return password;
+            var query = _context.Users
+                .Include(u => u.Role)
+                .Include(u => u.TypeDocument)
+                .AsQueryable();
+
+            // Filtros
+            if (!string.IsNullOrWhiteSpace(userFilterDto.Document))
+                query = query.Where(u => u.Document.Contains(userFilterDto.Document));
+
+            if (!string.IsNullOrWhiteSpace(userFilterDto.Username))
+                query = query.Where(u => u.Username.Contains(userFilterDto.Username));
+
+            if (!string.IsNullOrWhiteSpace(userFilterDto.Email))
+                query = query.Where(u => u.Email.Contains(userFilterDto.Email));
+
+            if (!string.IsNullOrWhiteSpace(userFilterDto.PhoneNumber))
+                query = query.Where(u => u.PhoneNumber == userFilterDto.PhoneNumber);
+
+            if (userFilterDto.IsActive.HasValue)
+                query = query.Where(u => u.IsActive == userFilterDto.IsActive.Value);
+
+            if (userFilterDto.IdRole.HasValue)
+                query = query.Where(u => u.IdRole == userFilterDto.IdRole.Value);
+
+            if (userFilterDto.IdTypeDocument.HasValue)
+                query = query.Where(u => u.IdTypeDocument == userFilterDto.IdTypeDocument.Value);
+
+            // Ordenamiento dinamico
+            if (!string.IsNullOrWhiteSpace(userFilterDto.SortBy))
+            {
+                query = userFilterDto.SortDesc
+                    ? query.OrderByDescending(e => EF.Property<object>(e, userFilterDto.SortBy))
+                    : query.OrderBy(e => EF.Property<object>(e, userFilterDto.SortBy));
+            }
+
+            var total = await query.CountAsync();
+
+            // Paginacion
+            query = query.Skip((userFilterDto.Page - 1) * userFilterDto.PageSize)
+                .Take(userFilterDto.PageSize);
+
+            // Selección de campos especificos
+            var userList = await query.ToListAsync();
+
+            if (userFilterDto.SelectFields != null && userFilterDto.SelectFields.Any())
+            {
+                var selectedData = userList.Select(user =>
+                {
+                    var dict = new Dictionary<string, object?>();
+                    foreach (var field in userFilterDto.SelectFields)
+                    {
+                        var prop = typeof(User).GetProperty(field);
+                        if (prop != null)
+                        {
+                            dict[field] = prop.GetValue(user);
+                        }
+                    }
+                    return dict;
+                }).ToList();
+
+                return new { total, data = selectedData };
+            }
+
+            return new { total, data = userList };
         }
     }
 }

@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Backend.Data;
+using Backend.DTOs.CountryDTOs;
+using Backend.DTOs.TypeDocumentDto;
+using Backend.Interfaces;
+using Backend.Models;
+using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Backend.Data;
-using Backend.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Backend.Controllers
 {
@@ -14,95 +19,109 @@ namespace Backend.Controllers
     [ApiController]
     public class TypeDocumentsController : ControllerBase
     {
-        private readonly BackendDbContext _context;
+        private readonly ITypeDocumentService _typeDocumentService;
 
-        public TypeDocumentsController(BackendDbContext context)
+        public TypeDocumentsController(ITypeDocumentService typeDocumentService)
         {
-            _context = context;
+            _typeDocumentService = typeDocumentService;
         }
 
         // GET: api/TypeDocuments
+        [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TypeDocument>>> GetTypesDocument()
+        public async Task<ActionResult<IEnumerable<TypeDocument>>> GetAllTypesDocument()
         {
-            return await _context.TypesDocument.ToListAsync();
+            var result = await _typeDocumentService.GetAllTypesDocumentAsync();
+
+            return Ok(result.Data);
         }
 
         // GET: api/TypeDocuments/5
+        [Authorize(Roles = "1")]
         [HttpGet("{id}")]
         public async Task<ActionResult<TypeDocument>> GetTypeDocument(int id)
         {
-            var typeDocument = await _context.TypesDocument.FindAsync(id);
+            var result = await _typeDocumentService.GetTypeDocumentByIdAsync(id);
 
-            if (typeDocument == null)
+            if (!result.Success)
             {
-                return NotFound();
+                if (result.Error == "Tipo de documento no encontrado")
+                    return NotFound(new { error = result.Error });
+
+                return BadRequest(new { error = result.Error });
             }
 
-            return typeDocument;
-        }
-
-        // PUT: api/TypeDocuments/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTypeDocument(int id, TypeDocument typeDocument)
-        {
-            if (id != typeDocument.IdTypeDocument)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(typeDocument).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TypeDocumentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(result.Data);
         }
 
         // POST: api/TypeDocuments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TypeDocument>> PostTypeDocument(TypeDocument typeDocument)
+        public async Task<ActionResult<TypeDocument>> CreateTypeDocument([FromBody]CreateTypeDocumentDto createTypeDocumentDto)
         {
-            _context.TypesDocument.Add(typeDocument);
-            await _context.SaveChangesAsync();
+            var result = await _typeDocumentService.CreateTypeDocumentAsync(createTypeDocumentDto);
 
-            return CreatedAtAction("GetTypeDocument", new { id = typeDocument.IdTypeDocument }, typeDocument);
+            if (!result.Success)
+                return BadRequest(new { error = result.Error });
+
+            var typeDocument = result.Data;
+
+            return CreatedAtAction(nameof(GetTypeDocument), new { id = typeDocument.IdTypeDocument }, typeDocument);
         }
 
-        // DELETE: api/TypeDocuments/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTypeDocument(int id)
+        // PUT: api/TypeDocuments/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateTypeDocument(int id, UpdateTypeDocumentDto updateTypeDocumentDto)
         {
-            var typeDocument = await _context.TypesDocument.FindAsync(id);
-            if (typeDocument == null)
-            {
-                return NotFound();
-            }
+            if (id != updateTypeDocumentDto.IdTypeDocument)
+                return BadRequest(new { error = "El Id en la ruta no coincide con el del cuerpo" });
 
-            _context.TypesDocument.Remove(typeDocument);
-            await _context.SaveChangesAsync();
+            var result = await _typeDocumentService.UpdateTypeDocumentAsync(updateTypeDocumentDto);
+
+            if (!result.Success)
+            {
+                if (result.Error == "Tipo de documento no encontrado")
+                    return NotFound(new { error = result.Error });
+
+                return BadRequest(new { error = result.Error });
+            }
 
             return NoContent();
         }
 
-        private bool TypeDocumentExists(int id)
+        // PUT: api/TypeDocuments/5/deactivate
+        [HttpPut("{id}/deactivate")]
+        public async Task<IActionResult> DeactivateTypeDocument(int id)
         {
-            return _context.TypesDocument.Any(e => e.IdTypeDocument == id);
+            var result = await _typeDocumentService.DeactivateTypeDocumentAsync(id);
+
+            if (!result.Success)
+            {
+                if (result.Error == "Tipo de documento no encontrado")
+                    return NotFound(new { error = result.Error });
+
+                return BadRequest(new { error = result.Error });
+            }
+
+            return NoContent();
+        }
+
+        // PUT: api/TypeDocuments/5/activate
+        [HttpPut("{id}/activate")]
+        public async Task<IActionResult> ActivateTypeDocument(int id)
+        {
+            var result = await _typeDocumentService.ActivateTypeDocumentAsync(id);
+
+            if (!result.Success)
+            {
+                if (result.Error == "Tipo de documento no encontrado")
+                    return NotFound(new { error = result.Error });
+
+                return BadRequest(new { error = result.Error });
+            }
+
+            return NoContent();
         }
     }
 }

@@ -5,6 +5,7 @@ namespace Backend.Data
 {
     public class BackendDbContext : DbContext
     {
+        // Constructor, le dice a Entity Framework como debe conectarse(cadena conexion, proveedor SQL, etc)
         public BackendDbContext(DbContextOptions options) : base(options) { }
 
         public DbSet<Role> Roles { get; set; }
@@ -14,6 +15,10 @@ namespace Backend.Data
         public DbSet<SubCategory> SubCategories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Presentation> Presentations { get; set; }
+        public DbSet<Country> Countries { get; set; }
+        public DbSet<Department> Departments { get; set; }
+        public DbSet<City> Cities { get; set; }
+        public DbSet<Address> Addresses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +35,14 @@ namespace Backend.Data
             modelBuilder.Entity<Product>().ToTable("Products");
 
             modelBuilder.Entity<Presentation>().ToTable("Presentations");
+            
+            modelBuilder.Entity<Country>().ToTable("Countries");
+
+            modelBuilder.Entity<Department>().ToTable("Departments");
+
+            modelBuilder.Entity<City>().ToTable("Cities");
+
+            modelBuilder.Entity<Address>().ToTable("Addresses");
         }
     }
 }
