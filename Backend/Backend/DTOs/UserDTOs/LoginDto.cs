@@ -9,7 +9,7 @@ namespace Backend.DTOs.UserDTOs
         [EmailAddress(ErrorMessage = "Este campo debe ser un correo válido")]
         public string Email { get; set; }
         [Required(ErrorMessage = "La contraseña es obligatorio")]
-        [StringLength(255, MinimumLength = 6, ErrorMessage = "Este campo debe tener entre 6 y 50 caracteres")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Este campo debe tener entre 6 y 100 caracteres")]
         public string Password { get; set; }
     }
 }

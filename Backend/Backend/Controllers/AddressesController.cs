@@ -1,6 +1,8 @@
-﻿using Backend.DTOs.AddressDTOs;
+﻿using Backend.DTOs;
+using Backend.DTOs.AddressDTOs;
 using Backend.Interfaces;
 using Backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers
@@ -17,6 +19,7 @@ namespace Backend.Controllers
         }
 
         // GET: api/Addresses
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Address>>> GetAllAddresses()
         {
@@ -25,8 +28,10 @@ namespace Backend.Controllers
             return Ok(result.Data);
         }
 
+        // GET: api/by-user/document
+        [Authorize(Roles = "Admin")]
         [HttpGet("by-user/{document}")]
-        public async Task<ActionResult<Address>> GetAddressByUser(string document)
+        public async Task<ActionResult<ReadAddressDto>> GetAddressByUser(string document)
         {
             var result = await _addressService.GetAddressesByUserAsync(document);
 
@@ -42,10 +47,11 @@ namespace Backend.Controllers
         }
 
         // GET: api/Addresses/5
+        [Authorize(Policy = "permission:common.profile.access")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Address>> GetAddressById(int id)
+        public async Task<ActionResult<Address>> GetAddressById(int id, string userDocument)
         {
-            var result = await _addressService.GetAddressByIdAsync(id);
+            var result = await _addressService.GetAddressByIdAsync(id, userDocument);
 
             if (!result.Success)
             {
@@ -60,41 +66,60 @@ namespace Backend.Controllers
 
         // POST: api/Addresses
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "permission:common.profile.access")]
         [HttpPost]
         public async Task<ActionResult<Address>> CreateAddress(CreateAddressDto createAddressDto)
         {
             var result = await _addressService.CreateAddressAsync(createAddressDto);
 
-            if (!result.Success)
-                return BadRequest(new { error = result.Error });
+            if (result.Success)
+                return Ok(result.Data);
 
-            var address = result.Data;
+            var errors = new Dictionary<string, string[]>();
 
-            return CreatedAtAction(nameof(GetAddressById), new { id = address.IdAddress }, address);
+            switch (result.Error)
+            {
+                case "Esta dirección ya esta registrada":
+                    errors["General"] = new[] { result.Error };
+                    break;
+
+                default:
+                    errors["General"] = new[] { result.Error };
+                    break;
+            }
+
+            return BadRequest(new { errors });
         }
 
         // PUT: api/Addresses/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "permission:common.profile.access")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAddress(int id, UpdateAddressDto updateAddressDto)
+        public async Task<IActionResult> UpdateAddress(int id, [FromBody]UpdateAddressDto updateAddressDto)
         {
-            if (id != updateAddressDto.IdAddress)
-                return BadRequest(new { error = "El Id en la ruta no coincide con el del cuerpo" });
+            var result = await _addressService.UpdateAddressAsync(id, updateAddressDto);
 
-            var result = await _addressService.UpdateAddressAsync(updateAddressDto);
+            if (result.Success)
+                return Ok(result.Data);
 
-            if (!result.Success)
+            var errors = new Dictionary<string, string[]>();
+
+            switch (result.Error)
             {
-                if (result.Error == "Dirección no encontrada")
-                    return NotFound(new { error = result.Error });
+                case "Esta dirección ya esta registrada":
+                    errors["General"] = new[] { result.Error };
+                    break;
 
-                return BadRequest(new { error = result.Error });
+                default:
+                    errors["General"] = new[] { result.Error };
+                    break;
             }
 
-            return NoContent();
+            return BadRequest(new { errors });
         }
 
         // PUT: api/Addresses/5/deactivate
+        [Authorize(Policy = "permission:common.profile.access")]
         [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateAddress(int id)
         {
@@ -112,6 +137,7 @@ namespace Backend.Controllers
         }
 
         // PUT: api/Addresses/5/activate
+        [Authorize(Policy = "permission:common.profile.access")]
         [HttpPut("{id}/activate")]
         public async Task<IActionResult> ActivateAddress(int id)
         {

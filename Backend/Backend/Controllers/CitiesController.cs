@@ -1,6 +1,7 @@
 ﻿using Backend.DTOs.CityDTOs;
 using Backend.Interfaces;
 using Backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers
@@ -17,6 +18,7 @@ namespace Backend.Controllers
         }
 
         // GET: api/Cities
+        [Authorize(Policy = "permission:common.cities.read")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<City>>> GetAllCities()
         {
@@ -25,7 +27,18 @@ namespace Backend.Controllers
             return Ok(result.Data);
         }
 
+        // GET: api/Cities/filter
+        [Authorize(Policy = "permission:admin.cities.read")]
+        [HttpGet("filter")]
+        public async Task<IActionResult> FilterCities([FromQuery] CityFilterDto filterDto)
+        {
+            var result = await _cityService.FilterCitiesAsync(filterDto);
+            return Ok(result);
+        }
+
+
         // GET: api/Cities/5
+        [Authorize(Policy = "permission:admin.cities.details")]
         [HttpGet("{id}")]
         public async Task<ActionResult<City>> GetCityById(int id)
         {
@@ -44,6 +57,7 @@ namespace Backend.Controllers
 
         // POST: api/Cities
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "permission:admin.cities.create")]
         [HttpPost]
         public async Task<ActionResult<City>> CreateCity(CreateCityDto createCityDto)
         {
@@ -59,6 +73,7 @@ namespace Backend.Controllers
 
         // PUT: api/Cities/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "permission:admin.cities.update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCity(int id, UpdateCityDto updateCityDto)
         {
@@ -79,6 +94,7 @@ namespace Backend.Controllers
         }
 
         // PUT: api/Cities/5/deactivate
+        [Authorize(Policy = "permission:admin.cities.deactive")]
         [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateCity(int id)
         {
@@ -96,6 +112,7 @@ namespace Backend.Controllers
         }
 
         // PUT: api/Cities/5/activate
+        [Authorize(Policy = "permission:admin.cities.active")]
         [HttpPut("{id}/activate")]
         public async Task<IActionResult> ActivateCity(int id)
         {

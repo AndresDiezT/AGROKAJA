@@ -1,16 +1,13 @@
-﻿using System;
+﻿using Backend.DTOs.CountryDTOs;
+using Backend.DTOs.UserDTOs;
+using Backend.Interfaces;
+using Backend.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Backend.Data;
-using Backend.Models;
-using Backend.Interfaces;
-using Backend.Services;
-using Backend.DTOs.RoleDTOs;
-using Backend.DTOs.CountryDTOs;
 
 namespace Backend.Controllers
 {
@@ -26,15 +23,27 @@ namespace Backend.Controllers
         }
 
         // GET: api/Countries
+        [Authorize(Policy = "permission:common.countries.read")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Country>>> GetAllCountries()
+        public async Task<ActionResult<IEnumerable<ReadCountryDto>>> GetAllCountries()
         {
             var result = await _countryService.GetAllCountriesAsync();
 
             return Ok(result.Data);
         }
 
+        // GET: api/Countries/filter
+        [Authorize(Policy = "permission:admin.countries.read")]
+        [HttpGet("filter")]
+        public async Task<IActionResult> FilterCountries([FromQuery] CountryFilterDto filterDto)
+        {
+            var result = await _countryService.FilterCountriesAsync(filterDto);
+            return Ok(result);
+        }
+
+
         // GET: api/Countries/5
+        [Authorize(Policy = "permission:admin.countries.details")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Country>> GetCountryById(int id)
         {
@@ -53,6 +62,7 @@ namespace Backend.Controllers
 
         // POST: api/Countries
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "permission:admin.countries.create")]
         [HttpPost]
         public async Task<ActionResult<Country>> CreateCountry(CreateCountryDto createCountryDto)
         {
@@ -68,6 +78,7 @@ namespace Backend.Controllers
 
         // PUT: api/Countries/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "permission:admin.countries.update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCountry(int id, UpdateCountryDto updateCountryDto)
         {
@@ -88,6 +99,7 @@ namespace Backend.Controllers
         }
 
         // PUT: api/Countries/5/deactivate
+        [Authorize(Policy = "permission:admin.countries.deactive")]
         [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateCountry(int id)
         {
@@ -105,6 +117,7 @@ namespace Backend.Controllers
         }
 
         // PUT: api/Countries/5/activate
+        [Authorize(Policy = "permission:admin.countries.active")]
         [HttpPut("{id}/activate")]
         public async Task<IActionResult> ActivateCountry(int id)
         {
