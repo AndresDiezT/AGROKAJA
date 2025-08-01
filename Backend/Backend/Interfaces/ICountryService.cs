@@ -7,7 +7,8 @@ namespace Backend.Interfaces
 {
     public interface ICountryService
     {
-        Task<Result<IEnumerable<Country>>> GetAllCountriesAsync();
+        Task<Result<IEnumerable<ReadCountryDto>>> GetAllCountriesAsync();
+        Task<object> FilterCountriesAsync(CountryFilterDto dto);
         Task<Result<Country>> GetCountryByIdAsync(int id);
         Task<Result<Country>> CreateCountryAsync(CreateCountryDto createCountryDto);
         Task<Result<Country>> UpdateCountryAsync(UpdateCountryDto updateCountryDTO);

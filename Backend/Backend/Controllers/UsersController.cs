@@ -27,13 +27,35 @@ namespace Backend.Controllers
         }
 
         // GET: api/Users
+        [Authorize(Policy = "permission:admin.users.read")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
             return Ok(await _userService.GetAllUsersAsync());
         }
 
+        // GET: api/Users/filter
+        // EJEMPLO: GET /api/user/filter?Username=juan&IsActive=true&Page=1&PageSize=5&SortBy=CreatedAt&SortDesc=true&SelectFields=Username&SelectFields=Email
+        [Authorize(Policy = "permission:admin.employees.read")]
+        [HttpGet("filter/employees")]
+        public async Task<IActionResult> GetEmployees([FromQuery] UserFilterDto filters)
+        {
+            var result = await _userService.FilterUsersAsync(filters, "employee");
+
+            return Ok(result);
+        }
+
+        [Authorize(Policy = "permission:admin.customers.read")]
+        [HttpGet("filter/customers")]
+        public async Task<IActionResult> GetCustomers([FromQuery] UserFilterDto filters)
+        {
+            var result = await _userService.FilterUsersAsync(filters, "customer");
+
+            return Ok(result);
+        }
+
         // GET: api/Users/5
+        [Authorize(Policy = "permission:admin.users.details")]
         [HttpGet("{document}")]
         public async Task<ActionResult<User>> GetUserByDocument(string document)
         {
@@ -44,58 +66,56 @@ namespace Backend.Controllers
             return Ok(user);
         }
 
-        // GET: api/Users/profile
-        [HttpGet("profile")]
-        public async Task<ActionResult<ReadUserDto>> GetUserByProfile()
+        // PUT: api/Users/123111
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "permission:common.profile.access")]
+        [HttpPut("{document}")]
+        public async Task<IActionResult> UpdateUser(string document, [FromBody]UpdateUserDto updateUserDto)
         {
-            var result = await _userService.GetProfileAsync();
+            var result = await _userService.UpdateUserAsync(document, updateUserDto);
 
-            if (!result.Success)
+            if (result.Success)
+                return Ok(result.Data);
+
+            var errors = new Dictionary<string, string[]>();
+
+            switch (result.Error)
             {
-                if (result.Error == "Usuario no encontrado")
-                    return NotFound(new { error = result.Error });
 
-                return BadRequest(new { error = result.Error });
+                default:
+                    errors["General"] = new[] { result.Error };
+                    break;
             }
 
-            return Ok(result.Data);
+            return BadRequest(new { errors });
         }
 
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(string document, UpdateUserDto updateUserDto)
+        // POST: api/Users/verify-email-confirm
+        [HttpPost("verify-email-confirm")]
+        public async Task<IActionResult> ConfirmEmailCode([FromBody] VerifyCodeDto dto)
         {
-            if (document != updateUserDto.Document) return BadRequest("El documento en la ruta no coincide con el del cuerpo");
+            var result = await _userService.VerifyEmailCodeAsync(dto.Document, dto.Code);
 
-            var updateUser = await _userService.UpdateUserAsync(updateUserDto);
+            if (!result.Success)
+                return BadRequest(new { error = result.Error });
 
-            if (updateUser == null) return NotFound();
-
-            return NoContent();
+            return Ok(new { message = "Código verificado" });
         }
 
         // PUT: api/Users/5/deactivate
-        [HttpPut("{id}/deactivate")]
+        [Authorize(Policy = "permission:admin.users.active")]
+        [HttpPut("{document}/deactivate")]
         public async Task<IActionResult> DeactivateUser(string document)
         {
             return await _userService.DeactivateUserAsync(document) ? NoContent() : BadRequest("El rol ya está invactivo o no existe");
         }
 
         // PUT: api/Users/5/activate
-        [HttpPut("{id}/activate")]
+        [Authorize(Policy = "permission:admin.users.deactive")]
+        [HttpPut("{document}/activate")]
         public async Task<IActionResult> ActivateUser(string document)
         {
             return await _userService.ActivateUserAsync(document) ? NoContent() : BadRequest("El rol ya está activo o no existe");
-        }
-
-        // GET: api/Users/filter
-        // EJEMPLO: GET /api/user/filter?Username=juan&IsActive=true&Page=1&PageSize=5&SortBy=CreatedAt&SortDesc=true&SelectFields=Username&SelectFields=Email
-        [HttpGet("filter")]
-        public async Task<IActionResult> FilterUsers([FromQuery] UserFilterDto filterDto)
-        {
-            var result = await _userService.FilterUsersAsync(filterDto);
-            return Ok(result);
         }
     }
 }

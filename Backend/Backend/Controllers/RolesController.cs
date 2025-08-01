@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Backend.Models;
-using Backend.Interfaces;
+﻿using Backend.DTOs;
+using Backend.DTOs.CountryDTOs;
 using Backend.DTOs.RoleDTOs;
+using Backend.Interfaces;
+using Backend.Models;
+using Backend.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Controllers
 {
@@ -19,14 +22,24 @@ namespace Backend.Controllers
         }
 
         // GET: api/Roles
-        [Authorize(Roles = "1")]
+        [Authorize(Policy = "permission:common.roles.read")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Role>>> GetAllRoles()
         {
             return Ok(await _roleService.GetAllRolesAsync());
         }
 
+        // GET: api/Roles/filter
+        [Authorize(Policy = "permission:admin.roles.read")]
+        [HttpGet("filter")]
+        public async Task<IActionResult> FilterRoles([FromQuery] RoleFilterDto filterDto)
+        {
+            var result = await _roleService.FilterRolesAsync(filterDto);
+            return Ok(result);
+        }
+
         // GET: api/Roles/5
+        [Authorize(Policy = "permission:admin.roles.details")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Role>> GetRoleById(int id)
         {
@@ -37,16 +50,34 @@ namespace Backend.Controllers
 
         // POST: api/Roles
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "permission:admin.roles.create")]
         [HttpPost]
         public async Task<ActionResult<Role>> CreateRole(CreateRoleDto createRoleDto)
         {
-            var role = await _roleService.CreateRoleAsync(createRoleDto);
+            var result = await _roleService.CreateRoleAsync(createRoleDto);
 
-            return CreatedAtAction(nameof(GetRoleById), new { id = role.IdRole }, role);
+            if (result.Success)
+                return Ok(result.Data);
+
+            var errors = new Dictionary<string, string[]>();
+
+            switch (result.Error)
+            {
+                case "Ya existe un rol con este nombre":
+                    errors["nameRole"] = new[] { result.Error };
+                    break;
+
+                default:
+                    errors["General"] = new[] { result.Error };
+                    break;
+            }
+
+            return BadRequest(new { errors });
         }
 
         // PUT: api/Roles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "permission:admin.roles.update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(int id, UpdateRoleDto updateRoleDto)
         {
@@ -60,6 +91,7 @@ namespace Backend.Controllers
         }
 
         // PUT: api/Roles/5/deactivate
+        [Authorize(Policy = "permission:admin.roles.deactive")]
         [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateRole(int id)
         {
@@ -67,6 +99,7 @@ namespace Backend.Controllers
         }
 
         // PUT: api/Roles/5/activate
+        [Authorize(Policy = "permission:admin.roles.active")]
         [HttpPut("{id}/activate")]
         public async Task<IActionResult> ActivateRole(int id)
         {
