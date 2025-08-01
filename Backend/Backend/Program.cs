@@ -59,6 +59,12 @@ builder.Services.AddScoped<ICountryService, CountryService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
+builder.Services.AddScoped<IComissionService, ComissionService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderStatusService, OrderStatusService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IPaymentStatusService, PaymentStatusService>();
+
 
 // AUTORIZACIÓN DINAMICA DE ROLES Y PERMISOS
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
@@ -99,6 +105,11 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ISubCategoryService, SubCategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IPresentationService, PresentationService>();
 
 var app = builder.Build();
 
