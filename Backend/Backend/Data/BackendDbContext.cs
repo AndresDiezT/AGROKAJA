@@ -15,6 +15,12 @@ namespace Backend.Data
         public DbSet<Department> Departments { get; set; }
         public DbSet<City> Cities { get; set; }
         public DbSet<Address> Addresses { get; set; }
+        public DbSet<Comission> Comissions { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderStatus> OrderStatus { get; set; }
+
+        public DbSet<PaymentStatus> PaymentStatuses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -31,6 +37,12 @@ namespace Backend.Data
             modelBuilder.Entity<City>().ToTable("Cities");
 
             modelBuilder.Entity<Address>().ToTable("Addresses");
+
+            modelBuilder.Entity<Comission>().ToTable("Comissions");
+            modelBuilder.Entity<Invoice>().ToTable("Invoices");
+            modelBuilder.Entity<PaymentStatus>().ToTable("PaymentStatuses");
+            modelBuilder.Entity<Order>().ToTable("Orders");
+            modelBuilder.Entity<OrderStatus>().ToTable("OrderStatus");
         }
     }
 }
