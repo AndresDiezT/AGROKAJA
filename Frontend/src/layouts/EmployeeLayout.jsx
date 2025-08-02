@@ -1,15 +1,16 @@
-import { Outlet } from 'react-router-dom'
-import EmployeeNavbar from '../components/EmployeeNavbar'
+import EmployeeSidebar from '../components/Menus/EmployeeSidebar'
+import useTheme from '../hooks/useTheme'
 
-function EmployeeLayout() {
+export default function EmployeeLayout() {
+    const [theme, setTheme] = useTheme()
+
     return (
-        <div>
-            <EmployeeNavbar />
-            <main>
-                <Outlet />
-            </main>
+        <div
+            className='min-h-screen overflow-x-hidden'
+            data-theme={theme}
+        >
+            <EmployeeSidebar theme={theme} setTheme={setTheme} />
+
         </div>
     )
 }
-
-export default EmployeeLayout
