@@ -16,11 +16,46 @@ namespace Backend.Services
             _context = context;
         }
 
-        public async Task<Result<IEnumerable<TypeDocument>>> GetAllTypesDocumentAsync()
+        public async Task<Result<IEnumerable<ReadTypeDocumentDto>>> GetAllTypesDocumentAsync()
         {
-            var typesDocument = await _context.TypesDocument.ToListAsync();
+            var typesDocument = await _context.TypesDocument
+                .Where(c => c.IsActive)
+                .Select(c => new ReadTypeDocumentDto
+                {
+                    IdTypeDocument = c.IdTypeDocument,
+                    NameTypeDocument = c.NameTypeDocument,
+                })
+                .ToListAsync();
 
-            return Result<IEnumerable<TypeDocument>>.Ok(typesDocument);
+            return Result<IEnumerable<ReadTypeDocumentDto>>.Ok(typesDocument);
+        }
+
+        public async Task<object> FilterTypesDocumentAsync(TypeDocumentFilterDto dto)
+        {
+            var query = _context.TypesDocument.AsQueryable();
+            if (!string.IsNullOrEmpty(dto.NameTypeDocument))
+            {
+                query = query.Where(c => c.NameTypeDocument.Contains(dto.NameTypeDocument));
+            }
+            if (dto.IsActive.HasValue)
+            {
+                query = query.Where(c => c.IsActive == dto.IsActive.Value);
+            }
+            // Paginación
+            var totalCount = await query.CountAsync();
+            var typesDocument = await query
+                .Skip((dto.Page - 1) * dto.PageSize)
+                .Take(dto.PageSize)
+                .Select(c => new ReadTypeDocumentDto
+                {
+                    NameTypeDocument = c.NameTypeDocument,
+                })
+                .ToListAsync();
+            return new
+            {
+                TotalCount = totalCount,
+                TypesDocument = typesDocument
+            };
         }
 
         public async Task<Result<TypeDocument>> GetTypeDocumentByIdAsync(int id)

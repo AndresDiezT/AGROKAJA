@@ -7,7 +7,8 @@ namespace Backend.Interfaces
 {
     public interface ITypeDocumentService
     {
-        Task<Result<IEnumerable<TypeDocument>>> GetAllTypesDocumentAsync();
+        Task<Result<IEnumerable<ReadTypeDocumentDto>>> GetAllTypesDocumentAsync();
+        Task<object> FilterTypesDocumentAsync(TypeDocumentFilterDto dto);
         Task<Result<TypeDocument>> GetTypeDocumentByIdAsync(int id);
         Task<Result<TypeDocument>> CreateTypeDocumentAsync(CreateTypeDocumentDto createTypeDocumentDto);
         Task<Result<TypeDocument>> UpdateTypeDocumentAsync(UpdateTypeDocumentDto updateTypeDocumentDto);

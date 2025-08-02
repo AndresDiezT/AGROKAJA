@@ -12,7 +12,8 @@ namespace Backend.Models
         public int TotalPurchases { get; set; }
         public int ReputationScore { get; set; }
         //RELATIONS
-        public string Document {  get; set; }
+        [Required]
+        public string Document { get; set; }
         [ForeignKey("Document")]
         public User User { get; set; }
 

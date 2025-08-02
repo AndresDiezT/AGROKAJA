@@ -7,7 +7,8 @@ namespace Backend.Interfaces
 {
     public interface ICityService
     {
-        Task<Result<IEnumerable<City>>> GetAllCitiesAsync();
+        Task<Result<IEnumerable<ReadCityDto>>> GetAllCitiesAsync();
+        Task<object> FilterCitiesAsync(CityFilterDto dto);
         Task<Result<City>> GetCityByIdAsync(int id);
         Task<Result<City>> CreateCityAsync(CreateCityDto createCityDto);
         Task<Result<City>> UpdateCityAsync(UpdateCityDto updateCityDto);
