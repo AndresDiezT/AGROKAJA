@@ -57,7 +57,7 @@ namespace Backend.Data
             modelBuilder.Entity<Product>().ToTable("Products");
 
             modelBuilder.Entity<Presentation>().ToTable("Presentations");
-            
+
             modelBuilder.Entity<Country>().ToTable("Countries");
             modelBuilder.Entity<Department>().ToTable("Departments");
             modelBuilder.Entity<City>().ToTable("Cities");
@@ -89,6 +89,43 @@ namespace Backend.Data
             modelBuilder.Entity<PaymentStatus>().ToTable("PaymentStatuses");
             modelBuilder.Entity<Order>().ToTable("Orders");
             modelBuilder.Entity<OrderStatus>().ToTable("OrderStatus");
+
+            // Relación User - Order
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserDocument)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Address)
+                .WithMany()
+                .HasForeignKey(o => o.IdAddress)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.OrderStatus)
+                .WithMany()
+                .HasForeignKey(o => o.IdOrderStatus)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Comission)
+                .WithMany()
+                .HasForeignKey(o => o.IdComission)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.PaymentMethod)
+                .WithMany()
+                .HasForeignKey(o => o.IdPaymentMethod)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.PaymentStatus)
+                .WithMany()
+                .HasForeignKey(o => o.IdPaymentStatus)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
